@@ -2,35 +2,25 @@ name: Build and release artifacts
 
 on:
   release:
-    types: [published]  # Only trigger when the release is actually published (not draft/prerelease)
-
+    tags:
+      - 'v*'
 permissions:
   contents: write
-
 jobs:
   release:
-    if: github.event.release.target_commitish == 'development'  # Run only if release was created from 'development' branch
     runs-on: ubuntu-latest
     steps:
+      - name: Dump GitHub context
+        run: echo '${{ toJSON(github) }}'
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - run: git fetch --force --tags
-
       - uses: actions/setup-go@v3
         with:
           go-version: 1.23
           cache: true
-
-      - name: Debug Info
-        run: |
-          echo "Ref: $GITHUB_REF"
-          echo "Release tag: ${{ github.event.release.tag_name }}"
-          echo "Target commitish: ${{ github.event.release.target_commitish }}"
-          echo "Workflow ref: ${{ github.workflow_ref }}"
-
-      - uses: goreleaser/goreleaser-action@v4
+      - uses: goreleaser/goreleaser-action@v4          # run goreleaser
         with:
           version: v2.9.0
           args: release --clean
